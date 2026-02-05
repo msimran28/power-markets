@@ -203,12 +203,12 @@ const PowerMarketDashboard = () => {
 
   // Get unique projects and ISOs
   const uniqueProjects = useMemo(() => {
-    const projects = [...new Set(csvData.map(r => r.project_name))];
+    const projects = Array.from(new Set(csvData.map(r => r.project_name)));
     return projects.sort();
   }, [csvData]);
 
   const uniqueISOs = useMemo(() => {
-    return [...new Set(csvData.map(r => r.iso))].sort();
+    return Array.from(new Set(csvData.map(r => r.iso))).sort();
   }, [csvData]);
 
   // Calculate risk alerts
@@ -381,12 +381,16 @@ const PowerMarketDashboard = () => {
       byProject[row.project_name].days++;
     });
 
-    return Object.entries(byProject).map(([name, data]) => ({
-      name,
-      ...data,
-      genVariance: ((data.actualGen - data.budgetGen) / data.budgetGen * 100),
-      avgDailyRevenue: data.actualRevenue / data.days
-    })).sort((a, b) => a.genVariance - b.genVariance);
+    const projectKeys = Object.keys(byProject);
+    return projectKeys.map((name) => {
+      const data = byProject[name];
+      return {
+        name,
+        ...data,
+        genVariance: ((data.actualGen - data.budgetGen) / data.budgetGen * 100),
+        avgDailyRevenue: data.actualRevenue / data.days
+      };
+    }).sort((a, b) => a.genVariance - b.genVariance);
   }, [filteredData]);
 
   // Chart data
@@ -401,7 +405,8 @@ const PowerMarketDashboard = () => {
       byDate[row.date].margin += row.net_pl || 0;
     });
 
-    return Object.values(byDate)
+    const dateKeys = Object.keys(byDate);
+    return dateKeys.map(key => byDate[key])
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .map(d => ({
         ...d,
@@ -414,12 +419,16 @@ const PowerMarketDashboard = () => {
   const isoRevenueChart = useMemo(() => {
     if (!summary) return [];
     
-    return Object.entries(summary.byISO).map(([iso, data]) => ({
-      iso,
-      'PPA Revenue': Math.round(data.revenue - data.basisRevenue),
-      'Basis Revenue': Math.round(data.basisRevenue),
-      'Total': Math.round(data.revenue)
-    }));
+    const isoKeys = Object.keys(summary.byISO);
+    return isoKeys.map((iso) => {
+      const data = summary.byISO[iso];
+      return {
+        iso,
+        'PPA Revenue': Math.round(data.revenue - data.basisRevenue),
+        'Basis Revenue': Math.round(data.basisRevenue),
+        'Total': Math.round(data.revenue)
+      };
+    });
   }, [summary]);
 
   const genBudgetChart = useMemo(() => {
@@ -703,7 +712,9 @@ const PowerMarketDashboard = () => {
                 fontFamily: "'Space Grotesk', sans-serif"
               }}>Market Breakdown</h2>
               <div className="grid grid-cols-3 gap-4">
-                {Object.entries(summary.byISO).map(([iso, data]) => (
+                {Object.keys(summary.byISO).map((iso) => {
+                  const data = summary.byISO[iso];
+                  return (
                   <div key={iso} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 backdrop-blur">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold" style={{
@@ -759,7 +770,7 @@ const PowerMarketDashboard = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                );})}
               </div>
             </div>
 
