@@ -14,7 +14,7 @@ const generateDemoData = () => {
     { name: 'Ohio Solar Complex', iso: 'PJM', capacity: 85, offtake: 0.92, price: 34.80, type: 'as-gen' }
   ];
 
-  const data = [];
+  const data: any[] = [];
   const startDate = new Date('2026-01-01');
   const days = 59; // Jan + Feb
 
@@ -32,7 +32,7 @@ const generateDemoData = () => {
       const omCost = (proj.capacity * 15000) / 365;
       const marketingCost = (proj.capacity * 5000) / 365;
 
-      let row = {
+      let row: any = {
         date: dateStr,
         project_name: proj.name,
         iso: proj.iso,
@@ -130,10 +130,10 @@ const generateDemoData = () => {
 };
 
 const PowerMarketDashboard = () => {
-  const [csvData, setCsvData] = useState([]);
+  const [csvData, setCsvData] = useState<any[]>([]);
   const [selectedISO, setSelectedISO] = useState('ALL');
   const [selectedProject, setSelectedProject] = useState('ALL');
-  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [dateRange, setDateRange] = useState<{ start: string | null; end: string | null }>({ start: null, end: null });
   const [viewMode, setViewMode] = useState('summary');
 
   // Load demo data on mount
@@ -149,13 +149,13 @@ const PowerMarketDashboard = () => {
   }, []);
 
   // Parse CSV upload
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target.result;
+      const text = e.target?.result as string;
       const lines = text.split('\n');
       const headers = lines[0].split(',').map(h => h.trim());
       
@@ -163,10 +163,10 @@ const PowerMarketDashboard = () => {
         .filter(line => line.trim())
         .map(line => {
           const values = line.split(',');
-          const row = {};
+          const row: any = {};
           headers.forEach((header, i) => {
             const value = values[i]?.trim() || '';
-            if (value && !isNaN(value) && value !== '') {
+            if (value && !isNaN(Number(value)) && value !== '') {
               row[header] = parseFloat(value);
             } else {
               row[header] = value;
@@ -213,7 +213,7 @@ const PowerMarketDashboard = () => {
 
   // Calculate risk alerts
   const riskAlerts = useMemo(() => {
-    const alerts = [];
+    const alerts: any[] = [];
     
     filteredData.forEach(row => {
       if (row.net_pl < 0) {
@@ -320,7 +320,7 @@ const PowerMarketDashboard = () => {
     });
 
     return alerts.sort((a, b) => {
-      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
       return severityOrder[a.severity] - severityOrder[b.severity];
     });
   }, [filteredData]);
@@ -329,7 +329,7 @@ const PowerMarketDashboard = () => {
   const summary = useMemo(() => {
     if (filteredData.length === 0) return null;
 
-    const byISO = {};
+    const byISO: Record<string, any> = {};
     filteredData.forEach(row => {
       if (!byISO[row.iso]) {
         byISO[row.iso] = {
@@ -364,7 +364,7 @@ const PowerMarketDashboard = () => {
 
   // Budget performance by project
   const budgetPerformance = useMemo(() => {
-    const byProject = {};
+    const byProject: Record<string, any> = {};
     filteredData.forEach(row => {
       if (!byProject[row.project_name]) {
         byProject[row.project_name] = {
@@ -391,7 +391,7 @@ const PowerMarketDashboard = () => {
 
   // Chart data
   const dailyPLChart = useMemo(() => {
-    const byDate = {};
+    const byDate: Record<string, any> = {};
     filteredData.forEach(row => {
       if (!byDate[row.date]) {
         byDate[row.date] = { date: row.date, revenue: 0, costs: 0, margin: 0 };
@@ -402,7 +402,7 @@ const PowerMarketDashboard = () => {
     });
 
     return Object.values(byDate)
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .map(d => ({
         ...d,
         revenue: Math.round(d.revenue),
@@ -442,7 +442,7 @@ const PowerMarketDashboard = () => {
     );
   }
 
-  const getSeverityColor = (severity) => {
+  const getSeverityColor = (severity: string) => {
     switch(severity) {
       case 'critical': return 'from-red-600 to-red-700';
       case 'high': return 'from-orange-500 to-orange-600';
@@ -451,7 +451,7 @@ const PowerMarketDashboard = () => {
     }
   };
 
-  const getSeverityBorder = (severity) => {
+  const getSeverityBorder = (severity: string) => {
     switch(severity) {
       case 'critical': return 'border-red-500';
       case 'high': return 'border-orange-500';
@@ -807,7 +807,7 @@ const PowerMarketDashboard = () => {
                         fontFamily: "'IBM Plex Mono', monospace",
                         fontSize: '12px'
                       }}
-                      formatter={(value) => `$${value.toLocaleString()}`}
+                      formatter={(value) => `$${Number(value).toLocaleString()}`}
                     />
                     <Legend 
                       wrapperStyle={{ 
@@ -865,7 +865,7 @@ const PowerMarketDashboard = () => {
                         fontFamily: "'IBM Plex Mono', monospace",
                         fontSize: '12px'
                       }}
-                      formatter={(value) => `$${(value / 1000000).toFixed(2)}M`}
+                      formatter={(value) => `$${(Number(value) / 1000000).toFixed(2)}M`}
                     />
                     <Legend 
                       wrapperStyle={{ 
@@ -911,8 +911,8 @@ const PowerMarketDashboard = () => {
                         fontSize: '12px'
                       }}
                       formatter={(value, name) => {
-                        if (name === 'Variance %') return `${value.toFixed(1)}%`;
-                        return `${value.toLocaleString()} MWh`;
+                        if (name === 'Variance %') return `${Number(value).toFixed(1)}%`;
+                        return `${Number(value).toLocaleString()} MWh`;
                       }}
                     />
                     <Legend 
