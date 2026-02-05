@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Upload, AlertTriangle, TrendingDown, TrendingUp, DollarSign, Zap, Filter, Calendar, Download, BarChart3 } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { Upload, AlertTriangle, TrendingDown, TrendingUp, DollarSign, Zap, BarChart3 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 // Demo data generator - creates realistic power market data
 const generateDemoData = () => {
